@@ -1,0 +1,75 @@
+name: Nimow Blocker Magisk
+'on':
+  workflow_dispatch:
+    inputs:
+      versionLevel:
+        description: Version Number
+        required: true
+      changeLog:
+        description: Changelog
+        required: true
+        default: Update
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Temp Folder
+        run: mkdir downloads
+      - name: Start Building
+        run: "cd downloads \n
+        wget https://hosts.oisd.nl/ \n
+          mv index.html hosts \n
+        wget https://o0.pages.dev/Lite/hosts.txt \n
+          sed '1,33d' hosts.txt >> hosts \n
+          rm hosts.txt \n 
+        wget https://raw.githubusercontent.com/ABPindo/indonesianadblockrules/master/subscriptions/hosts.txt \n
+          cat hosts.txt >> hosts\n 
+          mv hosts og_hosts \n
+        wget https://raw.githubusercontent.com/bigdargon/hostsVN/master/hosts \n
+          mv hosts hosts.txt \n
+          sed '1,12d' hosts.txt >> hosts\ncat hosts >> og_hosts\nmv og_hosts hosts \n
+          rm hosts.txt\nwget https://raw.githubusercontent.com/AdroitAdorKhan/EnergizedProtection/master/core/hosts-porn \n
+          sed '1,52d' hosts-porn >> hosts.txt\ncat hosts.txt >> hosts\nrm hosts.txt \n
+        wget https://gist.githubusercontent.com/pantsufan/ba4762d25de269dcdaa9f692ea6f9f5c/raw/9882032fa57fe910260d00fa959a80e0b05c2300/ms_adblock.txt \n
+          cat ms_adblock.txt >> hosts \n
+        wget https://github.com/Viole403/Nimow-Blocker-Magisk/archive/main.zip \n
+          echo \"showing files\" \n
+          unzip -d ZIP main.zip \n
+          echo \"Show\" \n
+          dir \n
+          echo \"Host file created\" \n
+          cp -u hosts ZIP/Nimow-Blocker-Magisk/system/etc/ \n
+          cd ZIP \n
+        echo \"id=NBM \n
+          name=Nimow Blocker Magisk \n
+          version=v${{ github.event.inputs.versionLevel }} \n
+          versionCode=1\nauthor=Viole403 \n
+          description=\U0001F525️ Say Goodbye To Ads Forever\" > module.prop \n
+        zip -r BlockAds-v${{ github.event.inputs.versionLevel }}.zip * \n
+        mkdir temp \n
+        mv Nimow-Blocker-Magisk-v${{ github.event.inputs.versionLevel }}.zip temp \n
+        cd ..\n
+        echo \"Build Done\" \n"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        with:
+          tag_name: 'v${{ github.event.inputs.versionLevel }}'
+          release_name: Nimow Blocker Magisk
+          body: |
+            # Changelog
+            - ${{ github.event.inputs.changeLog }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        with:
+          upload_url: '${{ steps.create_release.outputs.upload_url }}'
+          asset_path: ./downloads/ZIP/temp/BlockAds-v${{ github.event.inputs.versionLevel}}.zip
+          asset_name: 'BlockAds-v${{ github.event.inputs.versionLevel }}.zip'
+          asset_content_type: application/zip
